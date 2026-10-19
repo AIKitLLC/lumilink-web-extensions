@@ -448,16 +448,7 @@ function teams() {
     // Banner CSS
     let html = document.querySelector("html")
     let obj = document.createElement("div")
-    let logo = document.createElement("img")
     let text = document.createElement("p")
-
-    logo.setAttribute(
-      "src",
-      "https://ejnana.github.io/transcripto-status/icon.png"
-    )
-    logo.setAttribute("height", "32px")
-    logo.setAttribute("width", "32px")
-    logo.style.cssText = "border-radius: 4px"
     text.style.cssText = "margin-top: 1rem; margin-bottom:1rem; font-size: medium"
 
     if (extensionStatusJSON.status === 200) {
@@ -479,7 +470,6 @@ function teams() {
     }
 
     obj.prepend(text)
-    obj.prepend(logo)
     if (html)
       html.append(obj)
   }
@@ -507,70 +497,23 @@ function teams() {
 
 
   /**
-   * @description Logs anonymous errors to a Google sheet for swift debugging
+   * @description Logs errors locally for debugging
    * @param {string} code
    * @param {any} err
    */
   function logError(code, err) {
-    fetch(`https://script.google.com/macros/s/AKfycbwN-bVkVv3YX4qvrEVwG9oSup0eEd3R22kgKahsQ3bCTzlXfRuaiO7sUVzH9ONfhL4wbA/exec?version=${chrome.runtime.getManifest().version}&code=${code}&error=${encodeURIComponent(err)}&meetingSoftware=${meetingSoftware}`, { mode: "no-cors" })
-  }
-
-  /**
-   * @description Checks if the installed extension version meets the minimum required version.
-   * @param {string} oldVer
-   * @param {string} newVer
-   */
-  function meetsMinVersion(oldVer, newVer) {
-    const oldParts = oldVer.split('.')
-    const newParts = newVer.split('.')
-    for (var i = 0; i < newParts.length; i++) {
-      const a = ~~newParts[i] // parse int
-      const b = ~~oldParts[i] // parse int
-      if (a > b) return false
-      if (a < b) return true
-    }
-    return true
+    console.error(code, err)
   }
 
 
 
   /**
-   * @description Fetches extension status from GitHub and saves to chrome storage. Defaults to 200, if remote server is unavailable.
+   * @description Initializes the existing local operational status.
    */
   function checkExtensionStatus() {
-    return new Promise((resolve, reject) => {
-      // Set default value as 200
+    return new Promise((resolve) => {
       extensionStatusJSON = { status: 200, message: "<b>TranscripTonic is ready, enabling captions...</b> <br /> Please enable manually if not successful (More > Captions)" }
-
-      // https://stackoverflow.com/a/42518434
-      fetch(
-        "https://ejnana.github.io/transcripto-status/status-prod-teams.json",
-        { cache: "no-store" }
-      )
-        .then((response) => response.json())
-        .then((result) => {
-          const minVersion = result.minVersion
-
-          // Disable extension if version is below the min version
-          if (!meetsMinVersion(chrome.runtime.getManifest().version, minVersion)) {
-            extensionStatusJSON.status = 400
-            extensionStatusJSON.message = `<strong>TranscripTonic is not running</strong> <br /> Please update to v${minVersion} by following <a href="https://github.com/vivek-nexus/transcriptonic/wiki/Manually-update-TranscripTonic" target="_blank">these instructions</a>`
-          }
-          else {
-            // Update status based on response
-            extensionStatusJSON.status = result.status
-            extensionStatusJSON.message = result.message
-          }
-
-          console.log("Extension status fetched and saved")
-          resolve("Extension status fetched and saved")
-        })
-        .catch((err) => {
-          console.error(err)
-          reject("Could not fetch extension status")
-
-          logError("008", err)
-        })
+      resolve("Extension status initialized")
     })
   }
 
